@@ -1,0 +1,101 @@
+defaults: &defaults
+  working_directory: ~/repo
+  docker:
+    - image: circleci/node:10.16.3
+
+persisted_files: &persisted_files
+  paths:
+    - build/*
+    - node_modules/*
+
+version: 2.1
+jobs:
+  install_deps:
+    <<: *defaults
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package-lock.json" }}
+            - v1-dependencies-
+
+      - run:
+          name: 依存関係のインストール
+          command: npm install
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package-lock.json" }}
+
+      - persist_to_workspace:
+          root: ~/repo
+          <<: *persisted_files
+
+  lint_and_test:
+    <<: *defaults
+
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: ~/repo
+
+      - run:
+          name: 静的解析、テスト結果ファイルを出力するディレクトリを作成
+          command: mkdir reports
+
+      - run:
+          name: コードの静的解析を実行
+          command: $(npm bin)/eslint ./src --ext .ts --format junit --output-file ./reports/eslint/eslint.xml
+
+      - run:
+          name: テストを実行
+          command: $(npm bin)/nyc --silent $(npm bin)/mocha ./test/*.test.ts --require ts-node/register --reporter mocha-junit-reporter
+          environment:
+            MOCHA_FILE: ./reports/mocha/test-results.xml
+
+      - run:
+          name: コードカバレッジを生成
+          command: $(npm bin)/nyc report --reporter=lcov
+
+      - store_test_results:
+          path: ./reports
+
+      - store_artifacts:
+          path: ./reports/mocha/test-results.xml
+
+      - store_artifacts:
+          path: ./reports/eslint/eslint.xml
+
+      - store_artifacts:
+          path: ./coverage
+          prefix: coverage
+
+  build:
+    <<: *defaults
+
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: ~/repo
+
+      - run:
+          name: TypeScriptコードをビルド
+          command: $(npm bin)/tsc
+
+workflows:
+  version: 2
+
+  main:
+    jobs:
+      - install_deps
+      - lint_and_test:
+          requires:
+            - install_deps
+      - build:
+          requires:
+            - lint_and_test
