@@ -105,7 +105,7 @@ jobs:
 
 workflows:
   version: 2
-  trigger-jobs:
+  trigger-main-workflow:
     unless: << pipeline.parameters.run-main-workflow >>
     jobs:
       - trigger-jobs:
