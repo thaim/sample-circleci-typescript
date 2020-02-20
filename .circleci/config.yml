@@ -114,10 +114,11 @@ workflows:
       - trigger-jobs:
           name: 最新リリース
           image-tag: 'latest'
-  << pipeline.parameters.image-tag >>:
+  main:
     when: << pipeline.parameters.run-main-workflow >>
     jobs:
-      - install_deps
+      - install_deps:
+          name: install_deps Node v<< pipeline.parameters.image-tag >>
       - lint_and_test:
           requires:
             - install_deps
