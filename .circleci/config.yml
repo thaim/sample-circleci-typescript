@@ -117,11 +117,10 @@ workflows:
   main:
     when: << pipeline.parameters.run-main-workflow >>
     jobs:
-      - install_deps:
-          name: install_deps Node v<< pipeline.parameters.image-tag >>
+      - install_deps
       - lint_and_test:
           requires:
-            - install_deps Node v<< pipeline.parameters.image-tag >>
+            - install_deps
       - build:
           requires:
             - lint_and_test
