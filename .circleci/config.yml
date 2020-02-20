@@ -121,7 +121,7 @@ workflows:
           name: install_deps Node v<< pipeline.parameters.image-tag >>
       - lint_and_test:
           requires:
-            - install_deps
+            - install_deps Node v<< pipeline.parameters.image-tag >>
       - build:
           requires:
             - lint_and_test
