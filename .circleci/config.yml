@@ -35,7 +35,6 @@ jobs:
       - persist_to_workspace:
           root: ~/project
           paths:
-            - build/*
             - node_modules/*
 
   lint_and_test:
