@@ -51,17 +51,17 @@ jobs:
 
       - run:
           name: コードの静的解析を実行
-          command: $(npm bin)/eslint ./src --ext .ts --format junit --output-file ./reports/eslint/eslint.xml
+          command: npx eslint ./src --ext .ts --format junit --output-file ./reports/eslint/eslint.xml
 
       - run:
           name: テストを実行
-          command: $(npm bin)/nyc --silent $(npm bin)/mocha ./test/*.test.ts --require ts-node/register --reporter mocha-junit-reporter
+          command: npx nyc --silent npx mocha ./test/*.test.ts --require ts-node/register --reporter mocha-junit-reporter
           environment:
             MOCHA_FILE: ./reports/mocha/test-results.xml
 
       - run:
           name: コードカバレッジを生成
-          command: $(npm bin)/nyc report --reporter=lcov
+          command: npx nyc report --reporter=lcov
 
       - store_test_results:
           path: ./reports
@@ -83,7 +83,7 @@ jobs:
 
       - run:
           name: TypeScriptコードをビルド
-          command: $(npm bin)/tsc
+          command: npx tsc
 
   trigger-jobs:
     machine:
