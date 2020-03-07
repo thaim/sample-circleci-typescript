@@ -1,7 +1,7 @@
 {
-  "name": "javascript-sample",
+  "name": "typescript-sample",
   "version": "1.0.0",
-  "description": "javascript-sample",
+  "description": "typescript-sample",
   "main": "index.js",
   "scripts": {
     "test": "mocha ./test/*.test.ts --require ts-node/register",
@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/circleci-book/javascript-sample.git"
+    "url": "git+https://github.com/circleci-book/typescript-sample.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/circleci-book/javascript-sample/issues"
+    "url": "https://github.com/circleci-book/typescript-sample/issues"
   },
-  "homepage": "https://github.com/circleci-book/javascript-sample#readme",
+  "homepage": "https://github.com/circleci-book/typescript-sample#readme",
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^0.1.3",
     "@types/chai": "^4.2.3",
