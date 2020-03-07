@@ -1,4 +1,4 @@
-export default class Calculator {
+export class Calculator {
   static sum(args: number[]): number {
     const result = args.reduce((previousValue, currentValue) => previousValue + currentValue, 0);
 
