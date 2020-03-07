@@ -82,6 +82,9 @@ jobs:
       e:
         type: executor
         default: node
+      persist_built_files:
+        type: boolean
+        default: false
     executor: << parameters.e >>
     steps:
       - checkout
@@ -93,10 +96,13 @@ jobs:
           name: TypeScriptコードをビルド
           command: npx tsc
 
-      - persist_to_workspace:
-          root: ./
-          paths:
-            - build
+      - when:
+          condition: << parameters.persist_built_files >>
+          steps:
+            - persist_to_workspace:
+                root: ./
+                paths:
+                  - build
 
   deploy:
     parameters:
@@ -131,6 +137,7 @@ workflows:
           e:
             name: node
             image-tag: "12"
+          persist_built_files: true
           requires:
             - install_deps
 
