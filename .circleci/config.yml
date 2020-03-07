@@ -1,20 +1,20 @@
-parameters:
-  image-tag:
-    default: 'latest'
-    type: string
-  run-main-workflow:
-    default: false
-    type: boolean
-
 executors:
   node:
+    parameters:
+      image-tag:
+        default: '12'
+        type: string
     docker:
-      - image: circleci/node:<< pipeline.parameters.image-tag >>
+      - image: circleci/node:<< parameters.image-tag >>
 
 version: 2.1
 jobs:
   install_deps:
-    executor: node
+    parameters:
+      e:
+        type: executor
+        default: node
+    executor: << parameters.e >>
     steps:
       - checkout
 
@@ -38,7 +38,11 @@ jobs:
             - node_modules/*
 
   lint_and_test:
-    executor: node
+    parameters:
+      e:
+        type: executor
+        default: node
+    executor: << parameters.e >>
     steps:
       - checkout
 
@@ -74,7 +78,11 @@ jobs:
           prefix: coverage
 
   build:
-    executor: node
+    parameters:
+      e:
+        type: executor
+        default: node
+    executor: << parameters.e >>
     steps:
       - checkout
 
@@ -85,42 +93,67 @@ jobs:
           name: TypeScriptコードをビルド
           command: npx tsc
 
-  trigger-jobs:
-    machine:
-      image: ubuntu-1604:201903-01
-    parameters:
-      image-tag:
-        default: 'latest'
-        type: string
-    steps:
-      - run:
-          command: |
-            VCS_TYPE=$(echo ${CIRCLE_BUILD_URL} | cut -d '/' -f 4)
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - build
 
-            curl -u ${CIRCLE_TOKEN}: -X POST --header "Content-Type: application/json" -d "{
-              \"branch\": \"${CIRCLE_BRANCH}\",
-              \"parameters\": {\"run-main-workflow\": true, \"image-tag\":\"<< parameters.image-tag >>\"}
-            }" "https://circleci.com/api/v2/project/${VCS_TYPE}/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline"
-          name: Trigger main worflow
+  deploy:
+    parameters:
+      e:
+        type: executor
+        default: node
+    executor: << parameters.e >>
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ./
+      - run: echo "デプロイ実行"
+      - store_artifacts:
+          path: build
 
 workflows:
   version: 2
-  trigger-main-workflow:
-    unless: << pipeline.parameters.run-main-workflow >>
-    jobs:
-      - trigger-jobs:
-          name: LTSリリース
-          image-tag: '12'
-      - trigger-jobs:
-          name: 最新リリース
-          image-tag: 'latest'
   main:
-    when: << pipeline.parameters.run-main-workflow >>
     jobs:
       - install_deps
+
       - lint_and_test:
+          name: lint_and_test_node_12
+          e:
+            name: node
+            image-tag: "12"
           requires:
             - install_deps
+
       - build:
+          name: build_node_12
+          e:
+            name: node
+            image-tag: "12"
           requires:
-            - lint_and_test
+            - install_deps
+
+      - lint_and_test:
+          name: lint_and_test_node_latest
+          e:
+            name: node
+            image-tag: latest
+          requires:
+            - install_deps
+
+      - build:
+          name: build_node_latest
+          e:
+            name: node
+            image-tag: latest
+          requires:
+            - install_deps
+
+      - deploy:
+          requires:
+            - lint_and_test_node_12
+            - build_node_12
+            - lint_and_test_node_latest
+            - build_node_latest
+
