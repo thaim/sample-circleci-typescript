@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import Calculator from "../src/Calculator";
+import { Calculator } from "../src";
 
 describe("calculate", function () {
     it("add", function () {
