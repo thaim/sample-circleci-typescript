@@ -1,20 +1,8 @@
-executors:
-  node:
-    parameters:
-      image-tag:
-        default: '12'
-        type: string
-    docker:
-      - image: circleci/node:<< parameters.image-tag >>
-
 version: 2.1
 jobs:
   install_deps:
-    parameters:
-      e:
-        type: executor
-        default: node
-    executor: << parameters.e >>
+    docker:
+      - image: circleci/node:12
     steps:
       - checkout
 
@@ -35,17 +23,18 @@ jobs:
       - persist_to_workspace:
           root: ~/project
           paths:
+            - build/*
             - node_modules/*
 
   lint_and_test:
     parameters:
-      e:
-        type: executor
-        default: node
-    executor: << parameters.e >>
+      node-version:
+        type: string
+        default: "12"
+    docker:
+      - image: circleci/node:<< parameters.node-version >>
     steps:
       - checkout
-
       - attach_workspace:
           at: ~/project
 
@@ -78,14 +67,8 @@ jobs:
           prefix: coverage
 
   build:
-    parameters:
-      e:
-        type: executor
-        default: node
-      persist_built_files:
-        type: boolean
-        default: false
-    executor: << parameters.e >>
+    docker:
+      - image: circleci/node:12
     steps:
       - checkout
 
@@ -96,22 +79,15 @@ jobs:
           name: TypeScriptコードをビルド
           command: npx tsc
 
-      - when:
-          condition: << parameters.persist_built_files >>
-          steps:
-            - persist_to_workspace:
-                root: ./
-                paths:
-                  - build
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - build
 
   deploy:
-    parameters:
-      e:
-        type: executor
-        default: node
-    executor: << parameters.e >>
+    docker:
+      - image: circleci/node:12
     steps:
-      - checkout
       - attach_workspace:
           at: ./
       - run: echo "デプロイ実行"
@@ -123,44 +99,15 @@ workflows:
   main:
     jobs:
       - install_deps
-
       - lint_and_test:
-          name: lint_and_test_node_12
-          e:
-            name: node
-            image-tag: "12"
+          matrix:
+            parameters:
+              node-version: ["12", "latest"]
           requires:
             - install_deps
-
       - build:
-          name: build_node_12
-          e:
-            name: node
-            image-tag: "12"
-          persist_built_files: true
           requires:
-            - install_deps
-
-      - lint_and_test:
-          name: lint_and_test_node_latest
-          e:
-            name: node
-            image-tag: latest
-          requires:
-            - install_deps
-
-      - build:
-          name: build_node_latest
-          e:
-            name: node
-            image-tag: latest
-          requires:
-            - install_deps
-
+            - lint_and_test
       - deploy:
           requires:
-            - lint_and_test_node_12
-            - build_node_12
-            - lint_and_test_node_latest
-            - build_node_latest
-
+            - build
