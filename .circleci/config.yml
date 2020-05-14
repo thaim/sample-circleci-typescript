@@ -64,7 +64,7 @@ jobs:
 
       - store_artifacts:
           path: ./coverage
-          prefix: coverage
+          destination: coverage
 
   build:
     docker:
