@@ -23,7 +23,7 @@ jobs:
       - persist_to_workspace:
           root: ~/project
           paths:
-            - node_modules/*
+            - node_modules/
 
   lint_and_test:
     parameters:
@@ -56,13 +56,13 @@ jobs:
           command: npx nyc report --reporter=lcov
 
       - store_test_results:
-          path: ./reports
+          path: ./reports/
 
       - store_artifacts:
-          path: ./reports
+          path: ./reports/
 
       - store_artifacts:
-          path: ./coverage
+          path: ./coverage/
           destination: coverage
 
   build:
@@ -81,7 +81,7 @@ jobs:
       - persist_to_workspace:
           root: ./
           paths:
-            - build
+            - build/
 
   deploy:
     docker:
