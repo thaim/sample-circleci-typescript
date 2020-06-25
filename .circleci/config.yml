@@ -23,7 +23,7 @@ jobs:
       - persist_to_workspace:
           root: ~/project
           paths:
-            - node_modules/
+            - node_modules/*
 
   lint_and_test:
     parameters:
@@ -34,6 +34,7 @@ jobs:
       - image: circleci/node:<< parameters.node-version >>
     steps:
       - checkout
+
       - attach_workspace:
           at: ~/project
 
@@ -56,42 +57,14 @@ jobs:
           command: npx nyc report --reporter=lcov
 
       - store_test_results:
-          path: ./reports/
+          path: ./reports
 
       - store_artifacts:
-          path: ./reports/
+          path: ./reports
 
       - store_artifacts:
-          path: ./coverage/
-          destination: coverage
-
-  build:
-    docker:
-      - image: circleci/node:12
-    steps:
-      - checkout
-
-      - attach_workspace:
-          at: ~/project
-
-      - run:
-          name: TypeScriptコードをビルド
-          command: npx tsc
-
-      - persist_to_workspace:
-          root: ./
-          paths:
-            - build/
-
-  deploy:
-    docker:
-      - image: circleci/node:12
-    steps:
-      - attach_workspace:
-          at: ./
-      - run: echo "デプロイ実行"
-      - store_artifacts:
-          path: build
+          path: ./coverage
+          prefix: coverage
 
 workflows:
   version: 2
@@ -104,9 +77,3 @@ workflows:
               node-version: ["12", "latest"]
           requires:
             - install_deps
-      - build:
-          requires:
-            - lint_and_test
-      - deploy:
-          requires:
-            - build
