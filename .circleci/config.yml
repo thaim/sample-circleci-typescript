@@ -66,6 +66,19 @@ jobs:
           path: ./coverage
           prefix: coverage
 
+  build:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: ~/project
+
+      - run:
+          name: TypeScriptコードをビルド
+          command: npx tsc
+
 workflows:
   version: 2
   main:
@@ -77,3 +90,6 @@ workflows:
               node-version: ["12", "latest"]
           requires:
             - install_deps
+      - build:
+          requires:
+            - lint_and_test
