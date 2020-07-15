@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   install_deps:
     docker:
-      - image: circleci/node:12
+      - image: cimg/node:12.18
     steps:
       - checkout
 
@@ -29,9 +29,9 @@ jobs:
     parameters:
       node-version:
         type: string
-        default: "12"
+        default: "12.18"
     docker:
-      - image: circleci/node:<< parameters.node-version >>
+      - image: cimg/node:<< parameters.node-version >>
     steps:
       - checkout
 
@@ -68,7 +68,7 @@ jobs:
 
   build:
     docker:
-      - image: circleci/node:12
+      - image: cimg/node:12.18
     steps:
       - checkout
 
@@ -87,7 +87,7 @@ workflows:
       - lint_and_test:
           matrix:
             parameters:
-              node-version: ["12", "latest"]
+              node-version: ["12.18", "current"]
           requires:
             - install_deps
       - build:
